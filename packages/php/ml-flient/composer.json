@@ -1,0 +1,20 @@
+{
+    "name": "everisay/sif-ml-flient",
+    "type": "library",
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        }
+    },
+    "require": {
+        "everisay/sif-ml-shared": "^2.0",
+        "symfony/http-client": "^6.2",
+        "symfony/property-access": "^6.2",
+        "symfony/serializer": "^6.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "EverISay\\SIF\\ML\\Flient\\": "src/"
+        }
+    }
+}

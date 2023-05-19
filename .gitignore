@@ -1,0 +1,5 @@
+# Environment Configurations
+/apps/*/.env
+
+# PHP
+/apps/*/vendor/

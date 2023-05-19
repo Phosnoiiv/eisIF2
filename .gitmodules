@@ -1,0 +1,3 @@
+[submodule "packages/php/ml-proprietary"]
+	path = packages/php/ml-proprietary
+	url = git@github.com:Phosnoiiv/eisIF2-proprietary-ML.git

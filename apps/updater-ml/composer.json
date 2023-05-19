@@ -1,0 +1,22 @@
+{
+    "name": "everisay/sif-app-updater-ml",
+    "require": {
+        "everisay/sif-ml-flient": "^2.0",
+        "illuminate/support": "^10.11",
+        "symfony/console": "^6.2",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../packages/php/*"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EverISay\\SIF\\ML\\Updater\\": "src/"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "name": "everisay/sif-ml-shared",
+    "type": "library",
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0.x-dev"
+        }
+    },
+    "require": {
+        "everisay/sif-ml-common": "^2.0",
+        "everisay/sif-ml-proprietary": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EverISay\\SIF\\ML\\Shared\\": "src/"
+        }
+    }
+}
