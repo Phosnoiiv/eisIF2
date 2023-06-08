@@ -10,6 +10,7 @@ abstract class AbstractVersionConfig {
     }
 
     public const API_SERVER = '';
+    public const CDN_SERVER = '';
 
     public const UNITY_VERSION = '';
 }

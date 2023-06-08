@@ -2,7 +2,9 @@
     "name": "everisay/sif-app-updater-ml",
     "require": {
         "everisay/sif-ml-flient": "^2.0",
+        "everisay/sif-ml-storage": "^2.0",
         "illuminate/support": "^10.11",
+        "league/container": "^4.2",
         "symfony/console": "^6.2",
         "vlucas/phpdotenv": "^5.5"
     },

@@ -11,6 +11,7 @@ abstract class AbstractVersionProprietaryConfig {
     public const HEADER_DEBUGGER_ATTACHED = '';
 
     public const ASSET_VERSION = '';
+    public const ASSET_MANIFEST_NAME = '';
 
     public const BINARY_HASH = '';
     public const USER_AGENT = '';

@@ -23,6 +23,7 @@ class Flient {
         $this->client = HttpClient::create([
             'base_uri' => $versionConfig::API_SERVER,
             'headers' => [
+                'User-Agent' => $versionConfig->proprietaryConfig::USER_AGENT,
                 'Content-Type' => 'application/json',
                 'AOHARU-DEVICE' => $deviceConfig->device,
                 'AOHARU-PLATFORM' => $deviceConfig->platform,

@@ -11,6 +11,7 @@ class VersionJ010000 extends \EverISay\SIF\ML\Common\Config\AbstractVersionConfi
     }
 
     public const API_SERVER = 'https://api.app.lovelive-sif2.bushimo.jp/';
+    public const CDN_SERVER = 'https://lovelive-schoolidolfestival2-assets.akamaized.net/';
 
     public const UNITY_VERSION = '2021.3.14f1';
 }
