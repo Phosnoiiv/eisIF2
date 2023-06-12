@@ -3,11 +3,11 @@ namespace EverISay\SIF\ML\Updater;
 
 use Dotenv\Dotenv;
 use EverISay\SIF\ML\Common\Config\AbstractVersionConfig;
+use EverISay\SIf\ML\Common\Proprietary\AssetHelperInterface;
+use EverISay\SIF\ML\Proprietary\AssetHelper;
 use EverISay\SIF\ML\Storage\DownloadStorage;
-use League\Container\Argument\ResolvableArgument;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
@@ -22,8 +22,8 @@ $container->add(AbstractVersionConfig::class, function() {
     $versionConfigClass = env('VERSION_CONFIG');
     return new $versionConfigClass;
 });
-$container->add('DownloadStorageFilesystem', fn() => new LocalFilesystemAdapter(env('STORAGE_DOWNLOAD_PATH')));
-$container->add(DownloadStorage::class)->addArgument(new ResolvableArgument('DownloadStorageFilesystem'));
+$container->add(DownloadStorage::class)->addArgument(env('STORAGE_DOWNLOAD_PATH'));
+$container->add(AssetHelperInterface::class, fn() => $container->get(AssetHelper::class));
 $container->delegate(new ReflectionContainer);
 
 $cmdLoader = new ContainerCommandLoader($container, [

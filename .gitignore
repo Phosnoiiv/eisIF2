@@ -3,3 +3,8 @@
 
 # PHP
 /apps/*/vendor/
+
+# C# with VS
+/apps/*/bin/
+/apps/*/obj/
+/apps/*/.vs/

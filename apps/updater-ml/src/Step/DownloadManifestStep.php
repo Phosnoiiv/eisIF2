@@ -7,16 +7,15 @@ use EverISay\SIF\ML\Updater\Helper\NetworkHelper;
 
 final class DownloadManifestStep {
     function __construct(
-        private readonly string $assetHash,
         private readonly DownloadStorage $storage,
         private readonly AbstractVersionConfig $versionConfig,
         private readonly NetworkHelper $networkHelper,
     ) {}
 
-    public function execute(): void {
+    public function execute(string $assetHash): void {
         $name = $this->versionConfig->proprietaryConfig::ASSET_MANIFEST_NAME;
-        if ($this->storage->hasBundle($name, $this->assetHash)) return;
-        $content = $this->networkHelper->getBundle($name, $this->assetHash);
-        $this->storage->writeBundle($name, $this->assetHash, $content);
+        if ($this->storage->hasBundle($name, $assetHash)) return;
+        $content = $this->networkHelper->getBundle($name, $assetHash);
+        $this->storage->writeBundle($name, $assetHash, $content);
     }
 }
