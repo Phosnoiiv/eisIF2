@@ -6,6 +6,7 @@ use EverISay\SIF\ML\Common\Config\AbstractVersionConfig;
 use EverISay\SIf\ML\Common\Proprietary\AssetHelperInterface;
 use EverISay\SIF\ML\Proprietary\AssetHelper;
 use EverISay\SIF\ML\Storage\DownloadStorage;
+use EverISay\SIF\ML\Storage\ManifestStorage;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
 use Symfony\Component\Console\Application;
@@ -18,11 +19,13 @@ $env->load();
 
 $container = new Container;
 $container->add(Dotenv::class, $env);
+$container->addShared(\DateTimeInterface::class, new \DateTimeImmutable);
 $container->add(AbstractVersionConfig::class, function() {
     $versionConfigClass = env('VERSION_CONFIG');
     return new $versionConfigClass;
 });
 $container->add(DownloadStorage::class)->addArgument(env('STORAGE_DOWNLOAD_PATH'));
+$container->add(ManifestStorage::class)->addArgument(env('STORAGE_MANIFEST_PATH'));
 $container->add(AssetHelperInterface::class, fn() => $container->get(AssetHelper::class));
 $container->delegate(new ReflectionContainer);
 

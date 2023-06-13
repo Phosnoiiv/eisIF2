@@ -1,4 +1,6 @@
 ﻿using AssetStudio;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
 
 namespace EverISay.SIF.ML.Decoder;
 internal static class CommandHandlers {
@@ -25,5 +27,19 @@ internal static class CommandHandlers {
                 }
             }
         }
+    }
+
+    internal static void Deserialize(string input, string output) {
+        using var fileStream = new FileStream(input, FileMode.Open);
+        var formatter = new BinaryFormatter {
+            Binder = new SerializationBinder(),
+        };
+#pragma warning disable SYSLIB0011
+        var result = formatter.Deserialize(fileStream);
+#pragma warning restore SYSLIB0011
+        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions {
+            IncludeFields = true,
+        });
+        File.WriteAllText(output, json);
     }
 }
