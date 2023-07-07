@@ -17,6 +17,11 @@ use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
 final class ManifestStorage {
+    use SimpleStorageTrait {
+        SimpleStorageTrait::readSimpleStorage as readSimpleData;
+        SimpleStorageTrait::writeSimpleStorage as writeSimpleData;
+    }
+
     function __construct(
         private readonly string $localPath,
     ) {
@@ -25,6 +30,10 @@ final class ManifestStorage {
     }
 
     private readonly Filesystem $localFiles;
+
+    private function getSimpleFilesystem(): Filesystem {
+        return $this->localFiles;
+    }
 
     private readonly Serializer $serializer;
     private function getInnerSerializer(): Serializer {
@@ -43,15 +52,6 @@ final class ManifestStorage {
         ])]);
     }
 
-    private function readSimpleData(string $path, mixed $default = null): mixed {
-        if (!$this->localFiles->fileExists($path)) return $default;
-        return unserialize($this->localFiles->read($path));
-    }
-
-    private function writeSimpleData(string $path, mixed $data): void {
-        $this->localFiles->write($path, serialize($data));
-    }
-
     private function getMetadataPath(ManifestName $manifestName): string {
         return $manifestName->name . '.metadata.txt';
     }
@@ -68,7 +68,7 @@ final class ManifestStorage {
         return $manifestName->name . '.latest.txt';
     }
 
-    private function readLatestHash(ManifestName $manifestName): ?string {
+    public function readLatestHash(ManifestName $manifestName): ?string {
         return $this->readSimpleData($this->getLatestHashPath($manifestName));
     }
 
@@ -78,6 +78,10 @@ final class ManifestStorage {
 
     private function getSavePath(string $assetHash, ManifestName $manifestName): string {
         return $manifestName->name . '/' . $assetHash . '.json';
+    }
+
+    public function hasBundleManifest(?string $assetHash = null): bool {
+        return $this->localFiles->fileExists($this->getSavePath($assetHash, ManifestName::Bundle));
     }
 
     private function load(?string $assetHash, ManifestName $manifestName, string $class): AbstractManifestCollection {

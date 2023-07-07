@@ -6,6 +6,7 @@ abstract class AbstractVersionProprietaryConfig {
     public const NETWORK_SIGNATURE_KEY = '';
     public const MANIFEST_KEY = '';
     public const MANIFEST_IV = '';
+    public const TABLE_PASSWORD = '';
 
     public const HEADER_LAST_SIGNATURE = '';
     public const HEADER_THIS_SIGNATURE = '';

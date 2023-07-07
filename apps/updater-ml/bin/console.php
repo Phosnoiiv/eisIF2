@@ -5,6 +5,7 @@ use Dotenv\Dotenv;
 use EverISay\SIF\ML\Common\Config\AbstractVersionConfig;
 use EverISay\SIf\ML\Common\Proprietary\AssetHelperInterface;
 use EverISay\SIF\ML\Proprietary\AssetHelper;
+use EverISay\SIF\ML\Storage\DatabaseStorage;
 use EverISay\SIF\ML\Storage\DownloadStorage;
 use EverISay\SIF\ML\Storage\ManifestStorage;
 use League\Container\Container;
@@ -26,13 +27,15 @@ $container->add(AbstractVersionConfig::class, function() {
 });
 $container->add(DownloadStorage::class)->addArgument(env('STORAGE_DOWNLOAD_PATH'));
 $container->add(ManifestStorage::class)->addArgument(env('STORAGE_MANIFEST_PATH'));
+$container->addShared(DatabaseStorage::class)->addArgument(env('STORAGE_DATABASE_PATH'));
 $container->add(AssetHelperInterface::class, fn() => $container->get(AssetHelper::class));
-$container->delegate(new ReflectionContainer);
+$container->delegate(new ReflectionContainer(true));
 
 $cmdLoader = new ContainerCommandLoader($container, [
     'assetHash' => Command\AssetHashGetCommand::class,
     'du'             => Command\DownloadUpdateCommand::class,
     'downloadUpdate' => Command\DownloadUpdateCommand::class,
+    'migrate' => Command\MigrateDatabaseCommand::class,
 ]);
 
 $app = new Application;

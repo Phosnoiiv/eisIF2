@@ -1,5 +1,6 @@
 ﻿using AssetStudio;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace EverISay.SIF.ML.Decoder;
@@ -41,5 +42,10 @@ internal static class CommandHandlers {
             IncludeFields = true,
         });
         File.WriteAllText(output, json);
+    }
+
+    internal static void GetTableKey(string password, string salt) {
+        var crypt = new Rfc2898DeriveBytes(password, Convert.FromBase64String(salt));
+        Console.Write(Convert.ToBase64String(crypt.GetBytes(16)));
     }
 }

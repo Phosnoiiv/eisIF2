@@ -26,6 +26,7 @@ final class DecodeManifestStep {
     private readonly string $assetHash;
 
     public function execute(string $assetHash): void {
+        if ($this->manifestStorage->hasBundleManifest($assetHash)) return;
         $this->assetHash = $assetHash;
         $manifestName = $this->versionConfig->proprietaryConfig::ASSET_MANIFEST_NAME;
         if (!$this->downloadStorage->hasBundle($manifestName, $assetHash)) {
