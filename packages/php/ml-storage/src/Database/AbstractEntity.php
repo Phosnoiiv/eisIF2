@@ -3,4 +3,5 @@ namespace EverISay\SIF\ML\Storage\Database;
 
 abstract class AbstractEntity {
     abstract public function getId(): int|string;
+    abstract public function getReleaseLabelId(): int;
 }

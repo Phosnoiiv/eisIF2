@@ -20,14 +20,14 @@ final class DecodeManifestStep {
         private readonly AbstractVersionConfig $versionConfig,
         private readonly TempFileHelper $tempFileHelper,
         private readonly AssetHelperInterface $assetHelper,
-        private readonly \DateTimeInterface $time,
     ) {}
 
     private readonly string $assetHash;
+    private readonly \DateTimeInterface $time;
 
-    public function execute(string $assetHash): void {
-        if ($this->manifestStorage->hasBundleManifest($assetHash)) return;
+    public function execute(string $assetHash, \DateTimeInterface $time): void {
         $this->assetHash = $assetHash;
+        $this->time = $time;
         $manifestName = $this->versionConfig->proprietaryConfig::ASSET_MANIFEST_NAME;
         if (!$this->downloadStorage->hasBundle($manifestName, $assetHash)) {
             throw new UpdaterException('Manifest not found');
@@ -43,6 +43,10 @@ final class DecodeManifestStep {
     private readonly Serializer $serializer;
 
     private function process(ManifestName $manifestName, string $manifestCollectionClassName): void {
+        if ($this->manifestStorage->hasManifest($this->assetHash, $manifestName)) {
+            $this->manifestStorage->saveMetadata($this->assetHash, $this->time, $manifestName);
+            return;
+        }
         $name = $manifestName->name;
         $decoder = new Process([env('BIN_DECODER'), 'export', $this->downloadManifestPath, $name, $this->tempRoot]);
         $decoder->mustRun();

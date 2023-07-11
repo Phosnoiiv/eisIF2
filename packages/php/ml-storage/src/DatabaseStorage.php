@@ -88,6 +88,15 @@ final class DatabaseStorage {
         $this->compileSchema(true);
     }
 
+    /**
+     * @template T of AbstractEntity
+     * @param class-string<T> $className
+     * @return T|null
+     */
+    public function getEntityById(string $className, mixed $id): ?AbstractEntity {
+        return $this->getORM()->getRepository($className)->findByPK($id);
+    }
+
     public function storeEntity(AbstractEntity $entity): void {
         $this->getManager()->persist($entity);
     }

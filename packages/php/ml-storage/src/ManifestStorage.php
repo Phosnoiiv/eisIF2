@@ -43,11 +43,11 @@ final class ManifestStorage {
     /**
      * Get a Symfony Serializer. This function may be used by other components if needed.
      */
-    public function getSerializer(?NameConverterInterface $nameConverter = null): Serializer {
-        return new Serializer([new ArrayDenormalizer, new PropertyNormalizer(
+    public function getSerializer(?NameConverterInterface $nameConverter = null, array $additionalNormalizers = []): Serializer {
+        return new Serializer(array_merge([new ArrayDenormalizer, new PropertyNormalizer(
             nameConverter: $nameConverter,
             propertyTypeExtractor: new PropertyInfoExtractor(typeExtractors: [new PhpDocExtractor, new ReflectionExtractor]),
-        )], [new JsonEncoder(defaultContext: [
+        )], $additionalNormalizers), [new JsonEncoder(defaultContext: [
             JsonEncode::OPTIONS => JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
         ])]);
     }
@@ -80,8 +80,8 @@ final class ManifestStorage {
         return $manifestName->name . '/' . $assetHash . '.json';
     }
 
-    public function hasBundleManifest(?string $assetHash = null): bool {
-        return $this->localFiles->fileExists($this->getSavePath($assetHash, ManifestName::Bundle));
+    public function hasManifest(string $assetHash, ManifestName $manifestName): bool {
+        return $this->localFiles->fileExists($this->getSavePath($assetHash, $manifestName));
     }
 
     private function load(?string $assetHash, ManifestName $manifestName, string $class): AbstractManifestCollection {
@@ -99,6 +99,10 @@ final class ManifestStorage {
     public function save(string $assetHash, \DateTimeInterface $time, AbstractManifestCollection $collection): void {
         $manifestName = $collection->getName();
         $this->localFiles->write($this->getSavePath($assetHash, $manifestName), $this->getInnerSerializer()->serialize($collection, 'json'));
+        $this->saveMetadata($assetHash, $time, $manifestName);
+    }
+
+    public function saveMetadata(string $assetHash, \DateTimeInterface $time, ManifestName $manifestName): void {
         $metadata = $this->readMetadata($manifestName);
         $latestHash = $this->readLatestHash($manifestName);
         $timestamp = $time->getTimestamp();

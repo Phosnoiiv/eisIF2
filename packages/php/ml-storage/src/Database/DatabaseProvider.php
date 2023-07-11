@@ -21,7 +21,7 @@ final class DatabaseProvider implements \Cycle\Database\DatabaseProviderInterfac
     private function getDatabase(?string $database): DatabaseInterface {
         switch ($database) {
             default:
-                return $this->getSQLiteDatabase($database, $this->localPath . "/$database.s3db", '+0000');
+                return $this->getSQLiteDatabase($database, $this->localPath . "/$database.s3db");
         }
     }
 

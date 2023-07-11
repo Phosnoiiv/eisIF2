@@ -12,6 +12,9 @@ class ReleaseLabel extends AbstractEntity implements SingleIdEntityInterface {
     public function getId(): int {
         return $this->id;
     }
+    public function getReleaseLabelId(): int {
+        return $this->id;
+    }
 
     #[Column('text')]
     public string $description;
@@ -19,8 +22,8 @@ class ReleaseLabel extends AbstractEntity implements SingleIdEntityInterface {
     public int $releaseStatus;
     #[Column('text')]
     public string $scope;
-    #[Column('text')]
-    public string $openedAt;
-    #[Column('text')]
-    public string $closedAt;
+    #[Column('datetime', nullable: true)]
+    public ?\DateTimeInterface $openedAt;
+    #[Column('datetime', nullable: true)]
+    public ?\DateTimeInterface $closedAt;
 }

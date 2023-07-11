@@ -10,6 +10,10 @@ use EverISay\SIF\ML\Storage\DownloadStorage;
 use EverISay\SIF\ML\Storage\ManifestStorage;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerAwareInterface;
+use Symfony\Bridge\Monolog\Handler\ConsoleHandler;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
@@ -30,6 +34,14 @@ $container->add(ManifestStorage::class)->addArgument(env('STORAGE_MANIFEST_PATH'
 $container->addShared(DatabaseStorage::class)->addArgument(env('STORAGE_DATABASE_PATH'));
 $container->add(AssetHelperInterface::class, fn() => $container->get(AssetHelper::class));
 $container->delegate(new ReflectionContainer(true));
+$container->add('logger_updater', function() {
+    $logger = new Logger('updater-ml', [
+        new StreamHandler(env('LOG_FILE')),
+        new ConsoleHandler,
+    ]);
+    return $logger;
+});
+$container->inflector(LoggerAwareInterface::class)->invokeMethod('setLogger', ['logger_updater']);
 
 $cmdLoader = new ContainerCommandLoader($container, [
     'assetHash' => Command\AssetHashGetCommand::class,
