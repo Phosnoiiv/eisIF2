@@ -4,6 +4,10 @@
 # PHP
 /apps/*/vendor/
 
+# PHP (Spiral with RoadRunner)
+/apps/*/rr*
+/apps/*/runtime/
+
 # C# with VS
 /apps/*/bin/
 /apps/*/obj/

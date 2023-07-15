@@ -1,0 +1,9 @@
+version: "3"
+
+server:
+    command: "php backend.php"
+
+http:
+    address: "127.0.0.1:5723"
+    pool:
+        num_workers: 1
