@@ -7,13 +7,16 @@ use EverISay\SIF\ML\Storage\DownloadStorage;
 use EverISay\SIF\ML\Storage\Manifest\BundleManifestCollection;
 use EverISay\SIF\ML\Storage\Manifest\ManifestName;
 use EverISay\SIF\ML\Storage\ManifestStorage;
+use EverISay\SIF\ML\Storage\SerializerTrait;
 use EverISay\SIF\ML\Updater\Exception\UpdaterException;
 use EverISay\SIF\ML\Updater\Helper\TempFileHelper;
 use EverISay\SIF\ML\Updater\ManifestPropertyNameConverter;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 final class DecodeManifestStep {
+    use SerializerTrait;
+
     function __construct(
         private readonly DownloadStorage $downloadStorage,
         private readonly ManifestStorage $manifestStorage,
@@ -21,6 +24,10 @@ final class DecodeManifestStep {
         private readonly TempFileHelper $tempFileHelper,
         private readonly AssetHelperInterface $assetHelper,
     ) {}
+
+    private function defineSerializerNameConverter(): ?NameConverterInterface {
+        return new ManifestPropertyNameConverter;
+    }
 
     private readonly string $assetHash;
     private readonly \DateTimeInterface $time;
@@ -34,13 +41,11 @@ final class DecodeManifestStep {
         }
         $this->downloadManifestPath = $this->downloadStorage->getBundleLocalPath($manifestName, $assetHash);
         $this->tempRoot = $this->tempFileHelper->getPath();
-        $this->serializer = $this->manifestStorage->getSerializer(new ManifestPropertyNameConverter);
         $this->process(ManifestName::Bundle, BundleManifestCollection::class);
     }
 
     private readonly string $downloadManifestPath;
     private readonly string $tempRoot;
-    private readonly Serializer $serializer;
 
     private function process(ManifestName $manifestName, string $manifestCollectionClassName): void {
         if ($this->manifestStorage->hasManifest($this->assetHash, $manifestName)) {
@@ -59,7 +64,7 @@ final class DecodeManifestStep {
         $decoder = new Process([env('BIN_DECODER'), 'deserialize', $serializedPath, $deserializedPath]);
         $decoder->mustRun();
         $data = file_get_contents($deserializedPath);
-        $data = $this->serializer->deserialize($data, $manifestCollectionClassName, 'json');
+        $data = $this->deserialize($data, $manifestCollectionClassName);
         $this->manifestStorage->save($this->assetHash, $this->time, $data);
     }
 }

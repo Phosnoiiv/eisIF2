@@ -31,7 +31,7 @@ final class DownloadStorage {
     }
 
     public function hasBundle(string $name, string $hash): bool {
-        return $this->filesystem->has($this->getBundlePath($name, $hash));
+        return $this->filesystem->fileExists($this->getBundlePath($name, $hash));
     }
 
     public function readBundle(string $name, string $hash): string {

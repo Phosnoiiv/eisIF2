@@ -681,13 +681,13 @@
             "dist": {
                 "type": "path",
                 "url": "../../packages/php/ml-storage",
-                "reference": "fce46bcc197121f8c654b2250e9f22d9a15613bf"
+                "reference": "45ae4d902eb449f3e4fe76e4a199fbabbe4b0543"
             },
             "require": {
                 "cycle/annotated": "^3.3",
                 "cycle/orm": "^2.3",
                 "everisay/sif-ml-common": "^2.0",
-                "league/flysystem": "^3.15",
+                "league/flysystem": "^2.5",
                 "phpdocumentor/reflection-docblock": "^5.3",
                 "symfony/property-access": "^6.2",
                 "symfony/serializer": "^6.2"
@@ -1119,45 +1119,39 @@
         },
         {
             "name": "league/flysystem",
-            "version": "3.15.1",
+            "version": "2.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "a141d430414fcb8bf797a18716b09f759a385bed"
+                "reference": "8aaffb653c5777781b0f7f69a5d937baf7ab6cdb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/a141d430414fcb8bf797a18716b09f759a385bed",
-                "reference": "a141d430414fcb8bf797a18716b09f759a385bed",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/8aaffb653c5777781b0f7f69a5d937baf7ab6cdb",
+                "reference": "8aaffb653c5777781b0f7f69a5d937baf7ab6cdb",
                 "shasum": ""
             },
             "require": {
-                "league/flysystem-local": "^3.0.0",
+                "ext-json": "*",
                 "league/mime-type-detection": "^1.0.0",
-                "php": "^8.0.2"
+                "php": "^7.2 || ^8.0"
             },
             "conflict": {
-                "aws/aws-sdk-php": "3.209.31 || 3.210.0",
-                "guzzlehttp/guzzle": "<7.0",
-                "guzzlehttp/ringphp": "<1.1.1",
-                "phpseclib/phpseclib": "3.0.15",
-                "symfony/http-client": "<5.2"
+                "guzzlehttp/ringphp": "<1.1.1"
             },
             "require-dev": {
                 "async-aws/s3": "^1.5",
-                "async-aws/simple-s3": "^1.1",
-                "aws/aws-sdk-php": "^3.220.0",
+                "async-aws/simple-s3": "^1.0",
+                "aws/aws-sdk-php": "^3.132.4",
                 "composer/semver": "^3.0",
                 "ext-fileinfo": "*",
                 "ext-ftp": "*",
-                "ext-zip": "*",
-                "friendsofphp/php-cs-fixer": "^3.5",
+                "friendsofphp/php-cs-fixer": "^3.2",
                 "google/cloud-storage": "^1.23",
-                "microsoft/azure-storage-blob": "^1.1",
-                "phpseclib/phpseclib": "^3.0.14",
+                "phpseclib/phpseclib": "^2.0",
                 "phpstan/phpstan": "^0.12.26",
-                "phpunit/phpunit": "^9.5.11",
-                "sabre/dav": "^4.3.1"
+                "phpunit/phpunit": "^8.5 || ^9.4",
+                "sabre/dav": "^4.1"
             },
             "type": "library",
             "autoload": {
@@ -1191,7 +1185,7 @@
             ],
             "support": {
                 "issues": "https://github.com/thephpleague/flysystem/issues",
-                "source": "https://github.com/thephpleague/flysystem/tree/3.15.1"
+                "source": "https://github.com/thephpleague/flysystem/tree/2.5.0"
             },
             "funding": [
                 {
@@ -1201,69 +1195,13 @@
                 {
                     "url": "https://github.com/frankdejonge",
                     "type": "github"
-                }
-            ],
-            "time": "2023-05-04T09:04:26+00:00"
-        },
-        {
-            "name": "league/flysystem-local",
-            "version": "3.15.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/thephpleague/flysystem-local.git",
-                "reference": "543f64c397fefdf9cfeac443ffb6beff602796b3"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem-local/zipball/543f64c397fefdf9cfeac443ffb6beff602796b3",
-                "reference": "543f64c397fefdf9cfeac443ffb6beff602796b3",
-                "shasum": ""
-            },
-            "require": {
-                "ext-fileinfo": "*",
-                "league/flysystem": "^3.0.0",
-                "league/mime-type-detection": "^1.0.0",
-                "php": "^8.0.2"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "League\\Flysystem\\Local\\": ""
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Frank de Jonge",
-                    "email": "info@frankdejonge.nl"
-                }
-            ],
-            "description": "Local filesystem adapter for Flysystem.",
-            "keywords": [
-                "Flysystem",
-                "file",
-                "files",
-                "filesystem",
-                "local"
-            ],
-            "support": {
-                "issues": "https://github.com/thephpleague/flysystem-local/issues",
-                "source": "https://github.com/thephpleague/flysystem-local/tree/3.15.0"
-            },
-            "funding": [
-                {
-                    "url": "https://ecologi.com/frankdejonge",
-                    "type": "custom"
                 },
                 {
-                    "url": "https://github.com/frankdejonge",
-                    "type": "github"
+                    "url": "https://tidelift.com/funding/github/packagist/league/flysystem",
+                    "type": "tidelift"
                 }
             ],
-            "time": "2023-05-02T20:02:14+00:00"
+            "time": "2022-09-17T21:02:32+00:00"
         },
         {
             "name": "league/mime-type-detection",

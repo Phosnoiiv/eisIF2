@@ -6,21 +6,13 @@ use EverISay\SIF\ML\Storage\Manifest\BundleManifestCollection;
 use EverISay\SIF\ML\Storage\Manifest\ManifestName;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
-use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
-use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
-use Symfony\Component\Serializer\Encoder\JsonEncode;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
-use Symfony\Component\Serializer\Serializer;
 
 final class ManifestStorage {
     use SimpleStorageTrait {
         SimpleStorageTrait::readSimpleStorage as readSimpleData;
         SimpleStorageTrait::writeSimpleStorage as writeSimpleData;
     }
+    use SerializerStorageTrait;
 
     function __construct(
         private readonly string $localPath,
@@ -34,22 +26,8 @@ final class ManifestStorage {
     private function getSimpleFilesystem(): Filesystem {
         return $this->localFiles;
     }
-
-    private readonly Serializer $serializer;
-    private function getInnerSerializer(): Serializer {
-        return $this->serializer ??= $this->getSerializer();
-    }
-
-    /**
-     * Get a Symfony Serializer. This function may be used by other components if needed.
-     */
-    public function getSerializer(?NameConverterInterface $nameConverter = null, array $additionalNormalizers = []): Serializer {
-        return new Serializer(array_merge([new ArrayDenormalizer, new PropertyNormalizer(
-            nameConverter: $nameConverter,
-            propertyTypeExtractor: new PropertyInfoExtractor(typeExtractors: [new PhpDocExtractor, new ReflectionExtractor]),
-        )], $additionalNormalizers), [new JsonEncoder(defaultContext: [
-            JsonEncode::OPTIONS => JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
-        ])]);
+    private function getSerializerFilesystem(): Filesystem {
+        return $this->localFiles;
     }
 
     private function getMetadataPath(ManifestName $manifestName): string {
@@ -88,8 +66,7 @@ final class ManifestStorage {
         if (null === $assetHash) {
             $assetHash = $this->readLatestHash($manifestName);
         }
-        $data = $this->localFiles->read($this->getSavePath($assetHash, $manifestName));
-        return $this->getInnerSerializer()->deserialize($data, $class, 'json');
+        return $this->readSerializerStorage($this->getSavePath($assetHash, $manifestName), $class);
     }
 
     public function loadBundleManifest(?string $assetHash = null): BundleManifestCollection {
@@ -98,7 +75,7 @@ final class ManifestStorage {
 
     public function save(string $assetHash, \DateTimeInterface $time, AbstractManifestCollection $collection): void {
         $manifestName = $collection->getName();
-        $this->localFiles->write($this->getSavePath($assetHash, $manifestName), $this->getInnerSerializer()->serialize($collection, 'json'));
+        $this->writeSerializerStorage($this->getSavePath($assetHash, $manifestName), $collection);
         $this->saveMetadata($assetHash, $time, $manifestName);
     }
 

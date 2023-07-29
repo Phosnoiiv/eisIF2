@@ -1,8 +1,10 @@
 <?php
 namespace EverISay\SIF\ML\Updater\Command;
 
+use EverISay\SIF\ML\Storage\Update\UpdateInfo;
 use EverISay\SIF\ML\Updater\Step\DecodeManifestStep;
 use EverISay\SIF\ML\Updater\Step\DownloadManifestStep;
+use EverISay\SIF\ML\Updater\Step\SaveUpdateInfoStep;
 use EverISay\SIF\ML\Updater\Step\UpdateDatabaseStep;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,6 +19,7 @@ final class DownloadUpdateCommand extends Command {
         private readonly DownloadManifestStep $downloadManifestStep,
         private readonly DecodeManifestStep $decodeManifestStep,
         private readonly UpdateDatabaseStep $updateDatabaseStep,
+        private readonly SaveUpdateInfoStep $saveUpdateInfoStep,
     ) {
         parent::__construct();
     }
@@ -29,9 +32,11 @@ final class DownloadUpdateCommand extends Command {
     protected function execute(InputInterface $input, OutputInterface $output) {
         $assetHash = $input->getArgument('assetHash');
         $time = new \DateTimeImmutable($input->getOption('time'), new \DateTimeZone('+0800'));
+        $updateInfo = new UpdateInfo($assetHash, $time);
         $this->downloadManifestStep->execute($assetHash);
         $this->decodeManifestStep->execute($assetHash, $time);
-        $this->updateDatabaseStep->setLoggerConsoleOutput($output)->execute($time);
+        $this->updateDatabaseStep->setLoggerConsoleOutput($output)->execute($updateInfo);
+        $this->saveUpdateInfoStep->execute($updateInfo);
         return Command::SUCCESS;
     }
 }

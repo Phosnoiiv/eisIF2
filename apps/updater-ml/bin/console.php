@@ -8,6 +8,7 @@ use EverISay\SIF\ML\Proprietary\AssetHelper;
 use EverISay\SIF\ML\Storage\DatabaseStorage;
 use EverISay\SIF\ML\Storage\DownloadStorage;
 use EverISay\SIF\ML\Storage\ManifestStorage;
+use EverISay\SIF\ML\Storage\UpdateStorage;
 use League\Container\Container;
 use League\Container\ReflectionContainer;
 use Monolog\Handler\StreamHandler;
@@ -32,6 +33,7 @@ $container->add(AbstractVersionConfig::class, function() {
 $container->add(DownloadStorage::class)->addArgument(env('STORAGE_DOWNLOAD_PATH'));
 $container->add(ManifestStorage::class)->addArgument(env('STORAGE_MANIFEST_PATH'));
 $container->addShared(DatabaseStorage::class)->addArgument(env('STORAGE_DATABASE_PATH'));
+$container->addShared(UpdateStorage::class)->addArgument(env('STORAGE_UPDATE_PATH'));
 $container->add(AssetHelperInterface::class, fn() => $container->get(AssetHelper::class));
 $container->delegate(new ReflectionContainer(true));
 $container->add('logger_updater', function() {

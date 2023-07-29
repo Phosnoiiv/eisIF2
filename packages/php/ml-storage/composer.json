@@ -10,7 +10,7 @@
         "cycle/annotated": "^3.3",
         "cycle/orm": "^2.3",
         "everisay/sif-ml-common": "^2.0",
-        "league/flysystem": "^3.15",
+        "league/flysystem": "^2.5",
         "phpdocumentor/reflection-docblock": "^5.3",
         "symfony/property-access": "^6.2",
         "symfony/serializer": "^6.2"

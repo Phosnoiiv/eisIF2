@@ -8,6 +8,8 @@ use EverISay\SIF\ML\Storage\DatabaseStorage;
 use EverISay\SIF\ML\Storage\Manifest\BundleManifestCollection;
 use EverISay\SIF\ML\Storage\Manifest\ManifestName;
 use EverISay\SIF\ML\Storage\ManifestStorage;
+use EverISay\SIF\ML\Storage\SerializerTrait;
+use EverISay\SIF\ML\Storage\Update\UpdateInfo;
 use EverISay\SIF\ML\Updater\DateTimeNormalizer;
 use EverISay\SIF\ML\Updater\Helper\AssetHelper as UpdaterAssetHelper;
 use EverISay\SIF\ML\Updater\Helper\Decoder;
@@ -16,10 +18,11 @@ use EverISay\SIF\ML\Updater\LoggerAwareTrait;
 use EverISay\SIF\ML\Updater\TablePropertyNameConverter;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LogLevel;
-use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 final class UpdateDatabaseStep implements LoggerAwareInterface {
     use LoggerAwareTrait;
+    use SerializerTrait;
 
     function __construct(
         private readonly DatabaseStorage $databaseStorage,
@@ -28,20 +31,23 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
         private readonly UpdaterAssetHelper $updaterAssetHelper,
         private readonly ProprietaryAssetHelper $proprietaryAssetHelper,
     ) {
-        $this->serializer = $this->manifestStorage->getSerializer(new TablePropertyNameConverter, [new DateTimeNormalizer]);
     }
 
-    private readonly Serializer $serializer;
+    private function defineSerializerNameConverter(): ?NameConverterInterface {
+        return new TablePropertyNameConverter;
+    }
+    private function defineSerializerAdditionalNormalizers(): array {
+        return [new DateTimeNormalizer];
+    }
 
-    public array $newIds = [];
-    public array $changedIds = [];
-
+    private readonly UpdateInfo $updateInfo;
     private readonly \DateTimeInterface $time;
     private readonly int $timestamp;
 
-    public function execute(\DateTimeInterface $time): void {
-        $this->time = $time;
-        $this->timestamp = $time->getTimestamp();
+    public function execute(UpdateInfo $updateInfo): void {
+        $this->updateInfo = $updateInfo;
+        $this->time = $updateInfo->updateTime;
+        $this->timestamp = $this->time->getTimestamp();
         $currentCollection = $this->manifestStorage->loadBundleManifest();
         $previousHash = $this->databaseStorage->readLatestHash();
         if (null !== $previousHash) {
@@ -113,7 +119,7 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
         $data = $this->proprietaryAssetHelper->decryptTable($data, Decoder::getTableKey(...));
         $data = gzdecode($data);
         $data = Decoder::deserializeMemory($data, $this->tempFileHelper);
-        $data = $this->serializer->deserialize($data, $className . '[]', 'json');
+        $data = $this->deserialize($data, $className . '[]');
         return array_combine(array_map(fn(AbstractEntity $x) => $x->getId(), $data), $data);
     }
 
@@ -187,16 +193,21 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
     }
 
     private function acceptNew(int|string $id, AbstractEntity $entity, int $logType): void {
-        $this->newIds[$entity::class][] = $id;
+        $this->updateInfo->databaseNewIds[$entity::class][] = $id;
         $this->accept($id, $entity, $logType);
     }
 
     private function acceptChanged(int|string $id, AbstractEntity $entity, int $logType): void {
         $oldEntity = $this->databaseStorage->getEntityById($entity::class, is_int($id) ? $id : explode('_', $id));
+        $changes = [];
         foreach ((new \ReflectionClass($entity))->getProperties() as $reflectionProperty) {
-            $reflectionProperty->setValue($oldEntity, $reflectionProperty->getValue($entity));
+            $oldValue = $reflectionProperty->getValue($oldEntity);
+            $reflectionProperty->setValue($oldEntity, $newValue = $reflectionProperty->getValue($entity));
+            if ($oldValue != $newValue) {
+                $changes[$reflectionProperty->name] = [$oldValue, $newValue];
+            }
         }
-        $this->changedIds[$entity::class][] = $id;
+        $this->updateInfo->databaseChanges[$entity::class][$id] = $changes;
         $this->accept($id, $oldEntity, $logType);
     }
 
