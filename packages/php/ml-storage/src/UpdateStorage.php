@@ -2,6 +2,7 @@
 namespace EverISay\SIF\ML\Storage;
 
 use EverISay\SIF\ML\Storage\Update\UpdateInfo;
+use EverISay\SIF\ML\Storage\Update\UpdateNews;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
@@ -30,6 +31,7 @@ final class UpdateStorage {
 
     private const PATH_METADATA = 'metadata.txt';
     private const PATH_INFO = 'info/%1$s.json';
+    private const PATH_NEWS = 'news/%1$s.json';
 
     public function readMetadata(): array {
         return $this->readSimpleStorage(self::PATH_METADATA, []);
@@ -49,5 +51,17 @@ final class UpdateStorage {
         $metadata[$info->updateTime->getTimestamp()] = $info->assetHash;
         krsort($metadata);
         $this->writeSimpleStorage(self::PATH_METADATA, $metadata);
+    }
+
+    private function getNewsPath(string $assetHash): string {
+        return sprintf(self::PATH_NEWS, $assetHash);
+    }
+
+    public function readUpdateNews(string $assetHash): ?UpdateNews {
+        return $this->readSerializerStorage($this->getNewsPath($assetHash), UpdateNews::class);
+    }
+
+    public function writeUpdateNews(UpdateNews $news): void {
+        $this->writeSerializerStorage($this->getNewsPath($news->assetHash), $news);
     }
 }

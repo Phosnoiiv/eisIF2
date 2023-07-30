@@ -2,10 +2,12 @@
     "name": "everisay/sif-app-backend",
     "require": {
         "php": "~8.1.0",
+        "everisay/sif-ml-storage": "^2.0",
         "spiral/framework": "^3.7",
         "spiral/nyholm-bridge": "^1.3",
         "spiral/roadrunner-cli": "^2.5",
-        "spiral/roadrunner-bridge": "^3.0"
+        "spiral/roadrunner-bridge": "^3.0",
+        "laminas/laminas-feed": "^2.21"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -2,6 +2,7 @@
 namespace EverISay\SIF\ML\Updater\Command;
 
 use EverISay\SIF\ML\Storage\Update\UpdateInfo;
+use EverISay\SIF\ML\Updater\Step\CreateNewsStep;
 use EverISay\SIF\ML\Updater\Step\DecodeManifestStep;
 use EverISay\SIF\ML\Updater\Step\DownloadManifestStep;
 use EverISay\SIF\ML\Updater\Step\SaveUpdateInfoStep;
@@ -20,6 +21,7 @@ final class DownloadUpdateCommand extends Command {
         private readonly DecodeManifestStep $decodeManifestStep,
         private readonly UpdateDatabaseStep $updateDatabaseStep,
         private readonly SaveUpdateInfoStep $saveUpdateInfoStep,
+        private readonly CreateNewsStep $createNewsStep,
     ) {
         parent::__construct();
     }
@@ -37,6 +39,7 @@ final class DownloadUpdateCommand extends Command {
         $this->decodeManifestStep->execute($assetHash, $time);
         $this->updateDatabaseStep->setLoggerConsoleOutput($output)->execute($updateInfo);
         $this->saveUpdateInfoStep->execute($updateInfo);
+        $this->createNewsStep->execute();
         return Command::SUCCESS;
     }
 }
