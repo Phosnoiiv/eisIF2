@@ -101,6 +101,10 @@ final class DatabaseStorage {
         $this->getManager()->persist($entity);
     }
 
+    public function removeEntityById(string $className, mixed $id): void {
+        $this->getManager()->delete($this->getEntityById($className, $id));
+    }
+
     public function save(): void {
         $this->getManager()->run();
     }

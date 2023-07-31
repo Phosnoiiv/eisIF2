@@ -104,6 +104,22 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
                     }
                 }
             }
+            foreach ($previous as $id => $entity) {
+                if (!isset($current[$id])) {
+                    // Removed
+                    switch ($this->getReleaseLabelStatus($entity)) {
+                        case 1:
+                            $this->acceptRemoved($id, $entity, self::REMOVED_UNOPENED);
+                            break;
+                        case 0:
+                            $this->acceptRemoved($id, $entity, self::REMOVED_AVAILABLE);
+                            break;
+                        case -1:
+                            $this->reject($id, $entity, self::REMOVED_CLOSED);
+                            break;
+                    }
+                }
+            }
             $this->flushLog();
         }
         $this->databaseStorage->save();
@@ -135,8 +151,8 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
             $this->releaseLabelOpenTimestamps[$releaseLabelId] = $openTimestamp = $releaseLabel->openedAt?->getTimestamp();
             $this->releaseLabelCloseTimestamps[$releaseLabelId] = $closeTimestamp = $releaseLabel->closedAt?->getTimestamp();
             $this->releaseLabelStatus[$releaseLabelId] = match (true) {
-                !empty($closeTimestamp) && $closeTimestamp < $this->timestamp => -1,
                 !empty($openTimestamp) && $openTimestamp > $this->timestamp => 1,
+                !empty($closeTimestamp) && $closeTimestamp < $this->timestamp => -1,
                 default => 0,
             };
         }
@@ -155,6 +171,9 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
     private const CHANGED_CLOSED_TO_UNOPENED = 9;
     private const CHANGED_CLOSED_TO_AVAILABLE = 10;
     private const CHANGED_CLOSED_TO_CLOSED = 11;
+    private const REMOVED_UNOPENED = 12;
+    private const REMOVED_AVAILABLE = 13;
+    private const REMOVED_CLOSED = 14;
 
     private const LOG_DESCRIPTIONS = [
         self::NEW_UNOPENED                   => 'New %1$s %2$s (%3$s to %4$s)',
@@ -169,6 +188,9 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
         self::CHANGED_CLOSED_TO_UNOPENED     => 'Previously closed %1$s %2$s changed and became unopened (%3$s to %4$s)',
         self::CHANGED_CLOSED_TO_AVAILABLE    => 'Previously closed %1$s %2$s changed and became available (%3$s to %4$s)',
         self::CHANGED_CLOSED_TO_CLOSED       => 'REJECTED to change %1$s %2$s previously closed since %4$s',
+        self::REMOVED_UNOPENED               => 'Unopened %1$s %2$s (%3$s to %4$s) removed',
+        self::REMOVED_AVAILABLE              => '%1$s %2$s (%3$s to %4$s) removed',
+        self::REMOVED_CLOSED                 => 'REJECTED to remove %1$s %2$s previously closed since %4$s',
     ];
     private const LOG_LEVELS = [
         self::NEW_UNOPENED                   => LogLevel::INFO,
@@ -183,6 +205,9 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
         self::CHANGED_CLOSED_TO_UNOPENED     => LogLevel::WARNING,
         self::CHANGED_CLOSED_TO_AVAILABLE    => LogLevel::WARNING,
         self::CHANGED_CLOSED_TO_CLOSED       => LogLevel::WARNING,
+        self::REMOVED_UNOPENED               => LogLevel::INFO,
+        self::REMOVED_AVAILABLE              => LogLevel::WARNING,
+        self::REMOVED_CLOSED                 => LogLevel::WARNING,
     ];
 
     private array $logIds = [];
@@ -209,6 +234,11 @@ final class UpdateDatabaseStep implements LoggerAwareInterface {
         }
         $this->updateInfo->databaseChanges[$entity::class][$id] = $changes;
         $this->accept($id, $oldEntity, $logType);
+    }
+
+    private function acceptRemoved(int|string $id, AbstractEntity $entity, int $logType): void {
+        $this->databaseStorage->removeEntityById($entity::class, $id);
+        $this->reject($id, $entity, $logType);
     }
 
     private function reject(int|string $id, AbstractEntity $entity, int $logType): void {
