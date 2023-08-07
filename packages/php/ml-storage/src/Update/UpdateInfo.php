@@ -5,6 +5,8 @@ class UpdateInfo {
     function __construct(
         public string $assetHash,
         public \DateTimeInterface $updateTime,
+        public string $description,
+        public bool $isInitial = false,
     ) {
         $this->infoCreateTime = new \DateTimeImmutable;
     }

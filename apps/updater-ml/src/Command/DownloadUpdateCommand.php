@@ -29,12 +29,21 @@ final class DownloadUpdateCommand extends Command {
     protected function configure() {
         $this->addArgument('assetHash', InputArgument::REQUIRED);
         $this->addOption('time', 't', InputOption::VALUE_REQUIRED, 'Time string represented in +8 timezone', 'now');
+        $this->addOption('manual', 'm', InputOption::VALUE_NONE);
+        $this->addOption('initial', null, InputOption::VALUE_NONE);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
         $assetHash = $input->getArgument('assetHash');
         $time = new \DateTimeImmutable($input->getOption('time'), new \DateTimeZone('+0800'));
-        $updateInfo = new UpdateInfo($assetHash, $time);
+        $isManual = $input->getOption('manual');
+        $isInitial = $input->getOption('initial');
+        $description = match (true) {
+            $isInitial => '初始更新',
+            $isManual => '由 eisɪꜰ 运营人员手动触发的更新',
+            default => 'eisɪꜰ 定时自动更新',
+        };
+        $updateInfo = new UpdateInfo($assetHash, $time, $description, $isInitial);
         $this->downloadManifestStep->execute($assetHash);
         $this->decodeManifestStep->execute($assetHash, $time);
         $this->updateDatabaseStep->setLoggerConsoleOutput($output)->execute($updateInfo);

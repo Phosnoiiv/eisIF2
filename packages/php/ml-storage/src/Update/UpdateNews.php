@@ -9,4 +9,7 @@ class UpdateNews {
     }
 
     public \DateTimeInterface $newsCreateTime;
+
+    /** @var News\NewMusic[] */
+    public array $newMusic = [];
 }

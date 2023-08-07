@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncode;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
+use Symfony\Component\Serializer\Normalizer\BackedEnumNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
 
@@ -29,11 +30,11 @@ trait SerializerTrait {
     private readonly Serializer $serializer;
     private function getSerializer(): Serializer {
         if (!isset($this->serializer)) {
-            $this->serializer = new Serializer(array_merge([new ArrayDenormalizer, new PropertyNormalizer(
+            $this->serializer = new Serializer(array_merge([new ArrayDenormalizer, new BackedEnumNormalizer, new PropertyNormalizer(
                 nameConverter: $this->defineSerializerNameConverter(),
                 propertyTypeExtractor: new PropertyInfoExtractor(typeExtractors: [new PhpDocExtractor, new ReflectionExtractor]),
             )], $this->defineSerializerAdditionalNormalizers()), [new JsonEncoder(defaultContext: [
-                JsonEncode::OPTIONS => JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT,
+                JsonEncode::OPTIONS => JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT,
             ])]);
         }
         return $this->serializer;

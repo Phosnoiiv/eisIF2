@@ -38,6 +38,9 @@ final class DatabaseStorage {
 
     public const ENTITIES = [
         'release_label' => Database\ReleaseLabel::class,
+        'music'       => Database\Music\Music::class,
+        'music_level' => Database\Music\MusicLevel::class,
+        'live'        => Database\Music\Live::class,
     ];
 
     private const PATH_LATEST_HASH = 'latest.txt';
@@ -95,6 +98,24 @@ final class DatabaseStorage {
      */
     public function getEntityById(string $className, mixed $id): ?AbstractEntity {
         return $this->getORM()->getRepository($className)->findByPK($id);
+    }
+
+    /**
+     * @template T of AbstractEntity
+     * @param class-string<T> $className
+     * @return T|null
+     */
+    public function searchEntity(string $className, array $scope): ?AbstractEntity {
+        return $this->getORM()->getRepository($className)->findOne($scope);
+    }
+
+    /**
+     * @template T of AbstractEntity
+     * @param class-string<T> $className
+     * @return T[]
+     */
+    public function searchEntities(string $className, array $scope): mixed {
+        return $this->getORM()->getRepository($className)->findAll($scope);
     }
 
     public function storeEntity(AbstractEntity $entity): void {
