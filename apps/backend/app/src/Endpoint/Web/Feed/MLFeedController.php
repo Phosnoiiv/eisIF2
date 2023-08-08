@@ -49,6 +49,7 @@ class MLFeedController {
 
     private function generateUpdateItem(UpdateInfo $info, UpdateNews $news, callable $titleFactory, array $contentFactories, bool $isInsider): UpdateItem {
         $item = new UpdateItem($titleFactory($info, $news));
+        $hasContent = false;
         foreach ($contentFactories as $subtitle => $contentFactory) {
             $content = $contentFactory($info, $news, $isInsider);
             if (!empty($content)) {
@@ -56,7 +57,13 @@ class MLFeedController {
                     $item->content .= '<h3>' . $subtitle . '</h3>';
                 }
                 $item->content .= $content;
+                if (!is_numeric($subtitle) || 0 <= $subtitle) {
+                    $hasContent = true;
+                }
             }
+        }
+        if (!$hasContent) {
+            $item->content = '';
         }
         return $item;
     }
@@ -67,17 +74,19 @@ class MLFeedController {
 
     private function generateUpdateFeed(bool $isInsider): string {
         return $this->generateFeed('update' . ($isInsider ? '_insider' : ''), 'SIF2 新情报', $this->makeUpdateItemTitle(...), [
-            0 => $this->outputHead(...),
+            -1 => $this->outputDescription(...),
+            0 => $this->outputHash(...),
             '新歌曲' => $this->outputNewMusic(...),
         ], $isInsider);
     }
 
-    private function outputHead(UpdateInfo $info, UpdateNews $news, bool $isInsider): string {
-        $text = '<p><small>' . $info->description . '</small></p>';
-        if ($isInsider) {
-            $text .= '<p><small>' . $info->assetHash . '</small></p>';
-        }
-        return $text;
+    private function outputDescription(UpdateInfo $info, UpdateNews $news, bool $isInsider): string {
+        return '<p><small>' . $info->description . '</small></p>';
+    }
+
+    private function outputHash(UpdateInfo $info, UpdateNews $news, bool $isInsider): string {
+        if (!$isInsider) return '';
+        return '<p><small>' . $info->assetHash . '</small></p>';
     }
 
     #[Route('/feed/ml/update', methods: 'GET')]
