@@ -33,7 +33,7 @@ class MLFeedController {
                 $info = $this->updateStorage->readUpdateInfo($hash);
                 $news = $this->updateStorage->readUpdateNews($hash);
                 $item = $this->generateUpdateItem($info, $news, $itemTitleFactory, $contentFactories, $isInsider);
-                $cache->set($key, $item);
+                $cache->set($key, $item, 31536000 /* An interval long enough for us to change implementation */);
             }
             /** @var UpdateItem $item */
             if (empty($item->content)) continue;
