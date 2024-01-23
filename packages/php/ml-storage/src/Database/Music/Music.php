@@ -47,6 +47,13 @@ class Music extends AbstractEntity implements SingleIdEntityInterface {
     public int $locked;
     #[Column('integer', typecast: ObtainType::class)]
     public ObtainType $obtainType;
+
+    /**
+     * @since 2.0.0-alpha.1.10 (Game 1.10.0)
+     */
+    #[Column('integer', default: 0)]
+    public int $isAcLevelMusic;
+
     #[Column('text')]
     public string $releaseDateTime;
     #[Column('integer')]
