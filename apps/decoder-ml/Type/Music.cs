@@ -16,6 +16,10 @@ internal class MusicMst {
     public uint _previewMasterBgmId;
     public uint _locked;
     public OBTAIN_TYPE _obtainType;
+
+    /// <remarks>Since 2.0.0-alpha.1.11 (Game 1.10.0)</remarks>
+    public int _isAcLevelMusic;
+
     public string _releaseDateTime;
     public uint _masterReleaseLabelId;
 }
