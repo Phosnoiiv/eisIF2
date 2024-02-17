@@ -2,22 +2,37 @@
 namespace EverISay\SIF\ML\Flient;
 
 use EverISay\SIF\ML\Common\Config\AbstractVersionConfig;
+use EverISay\SIF\ML\Common\Config\AccountConfig;
 use EverISay\SIF\ML\Common\Config\DeviceConfig;
 use EverISay\SIF\ML\Common\Proprietary\NetworkHelperInterface;
+use EverISay\SIF\ML\Shared\Enum\RankingGroupType;
+use EverISay\SIF\ML\Shared\Enum\RankingType;
 use EverISay\SIF\ML\Shared\Response\AbstractResponse;
 use EverISay\SIF\ML\Shared\Response\AssetHashGetResponse;
+use EverISay\SIF\ML\Shared\Response\Data\Element\RankingDetail;
+use EverISay\SIF\ML\Shared\Response\EventRankingGetResponse;
+use EverISay\SIF\ML\Shared\Response\StartResponse;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
+use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
+use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 use Symfony\Component\Serializer\Serializer;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class Flient {
+class Flient implements LoggerAwareInterface {
+    use LoggerAwareTrait;
+
     function __construct(
         private readonly AbstractVersionConfig $versionConfig,
         private readonly DeviceConfig $deviceConfig,
+        private readonly AccountConfig $accountConfig,
         private readonly NetworkHelperInterface $networkHelper,
     ) {
         $this->client = HttpClient::create([
@@ -52,6 +67,8 @@ class Flient {
     }
 
     private const API_START_ASSET_HASH = '/api/start/assetHash';
+    private const API_START = '/api/start';
+    private const API_EVENT_RANKING = '/api/event/ranking';
 
     /**
      * @template T of AbstractResponse
@@ -77,19 +94,64 @@ class Flient {
                 'AOHARU-ASSET-HASH' => $this->assetHash,
             ],
         ]);
-        $responseData = $this->networkHelper->decryptResponseBody($httpResponse->getContent());
+        try {
+            $responseData = $this->networkHelper->decryptResponseBody($httpResponse->getContent());
+        } catch (HttpExceptionInterface $ex) {
+            $this->logger?->error($ex->getMessage());
+            $this->logger?->error($uri . ' ' . $httpResponse->getContent(false));
+            throw $ex;
+        }
+        $this->logger?->debug($uri . ' ' . $responseData);
         $this->lastSignature = $signature;
-        $serializer = new Serializer([
-            new PropertyNormalizer(null, new CamelCaseToSnakeCaseNameConverter, new ReflectionExtractor),
-        ], [new JsonEncoder]);
+        $serializer = new Serializer([new ArrayDenormalizer, new PropertyNormalizer(
+            nameConverter: new CamelCaseToSnakeCaseNameConverter,
+            propertyTypeExtractor: new PropertyInfoExtractor(typeExtractors: [new PhpDocExtractor, new ReflectionExtractor])
+        )], [new JsonEncoder]);
         return $serializer->deserialize($responseData, $responseClass, 'json');
     }
 
-    public function getAssetHash(): string {
-        $response = $this->request(self::API_START_ASSET_HASH, AssetHashGetResponse::class, [
+    private function prepareStartRequestData(): array {
+        return [
             'asset_version' => $this->versionConfig->proprietaryConfig::ASSET_VERSION,
             'environment' => 'release',
-        ]);
+        ];
+    }
+
+    public function getAssetHash(): string {
+        $response = $this->request(self::API_START_ASSET_HASH, AssetHashGetResponse::class, $this->prepareStartRequestData());
         return $this->assetHash = $response->data->assetHash;
+    }
+
+    private function login(): void {
+        if (empty($this->assetHash)) {
+            $this->getAssetHash();
+        }
+        $this->userId = $this->accountConfig->userId;
+        $this->request(self::API_START, StartResponse::class, $this->prepareStartRequestData());
+    }
+
+    private function ensureLogin(): void {
+        if (empty($this->userId)) {
+            $this->login();
+        }
+    }
+
+    public const SIZE_EVENT_RANKING = 98;
+
+    /**
+     * @return RankingDetail[]
+     */
+    public function getEventRanking(int $eventId, RankingType $rankingType, int $startRank = 1): array {
+        $this->ensureLogin();
+        $response = $this->request(self::API_EVENT_RANKING, EventRankingGetResponse::class, [
+            'master_event_id' => $eventId,
+            'ranking_type' => $rankingType->value,
+            'ranking_group_type' => RankingGroupType::All->value,
+            'user_id' => 0,
+            'start_rank' => $startRank,
+            'count' => self::SIZE_EVENT_RANKING,
+            'group_id' => 0,
+        ]);
+        return $response->data->rankingDetailList;
     }
 }
