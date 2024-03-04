@@ -25,6 +25,10 @@ final class FetchRankingCommand extends Command implements LoggerAwareInterface 
     ) {
         parent::__construct();
         $this->addArgument('eventId', InputArgument::REQUIRED);
+        $this->addOption('member', null, InputOption::VALUE_REQUIRED,
+            'Fetch "Best Girl Ranking" instead of default "Event pt Ranking". Require Member ID.');
+        $this->addOption('score', null, InputOption::VALUE_NONE,
+            'Fetch "Event Song Score Rank" instead of default "Event pt Ranking".');
         $this->addOption('start', null, InputOption::VALUE_OPTIONAL, '', 1);
         $this->addOption('end', null, InputOption::VALUE_OPTIONAL);
     }
@@ -32,26 +36,48 @@ final class FetchRankingCommand extends Command implements LoggerAwareInterface 
     protected function execute(InputInterface $input, OutputInterface $output) {
         $this->setLoggerConsoleOutput($output);
         $eventId = $input->getArgument('eventId');
+        $memberId = $input->getOption('member') ?: 0;
+        $isScoreRanking = $input->getOption('score');
         $start = $input->getOption('start');
         $end = $input->getOption('end');
+        if ($memberId == 'all') {
+            foreach (array_merge(
+                range(1001, 1009), range(2001, 2009),
+                range(3001, 3012), range(4001, 4011),
+            ) as $memberId) {
+                $this->fetchRanking($eventId, RankingType::Member, $memberId, $start, $end);
+            }
+        } else {
+            $this->fetchRanking($eventId, match (true) {
+                !empty($memberId) => RankingType::Member,
+                $isScoreRanking => RankingType::Score,
+                default => RankingType::Point,
+            }, $memberId, $start, $end);
+        }
+        return Command::SUCCESS;
+    }
+
+    private function fetchRanking(int $eventId, RankingType $type, int $memberId, int $start, ?int $end): void {
         $results = [];
         while (true) {
-            $list = $this->flient->getEventRanking($eventId, RankingType::Point, $start);
+            $list = $this->flient->getEventRanking($eventId, $type, $start, $memberId);
             if (empty($list)) break;
             foreach ($list as $detail) {
                 if (!empty($end) && $detail->rank > $end) break 2;
                 $results[] = $this->convertData($detail);
                 if (count($results) >= 10000) {
-                    $this->interactionStorage->writeRankings($eventId, $results);
+                    $this->interactionStorage->writeRankings($eventId, $results, $memberId);
                     $results = [];
                 }
             }
-            $this->logger?->info('Fetched ranking ' . $list[0]->rank . '-' . $list[array_key_last($list)]->rank);
+            $this->logger?->info(sprintf('Fetched ranking %d-%d%s',
+                $list[0]->rank, $list[array_key_last($list)]->rank,
+                $memberId ? ' in group ' . $memberId : '',
+            ));
             sleep(1);
             $start += Flient::SIZE_EVENT_RANKING;
         }
-        $this->interactionStorage->writeRankings($eventId, $results);
-        return Command::SUCCESS;
+        $this->interactionStorage->writeRankings($eventId, $results, $memberId);
     }
 
     private function convertData(RankingDetail $detail): Ranking {

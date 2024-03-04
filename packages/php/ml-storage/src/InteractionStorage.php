@@ -27,8 +27,13 @@ final class InteractionStorage {
     /**
      * @param Ranking[] $rankings
      */
-    public function writeRankings(int $eventId, array $rankings): void {
+    public function writeRankings(int $eventId, array $rankings, int $groupId = 0): void {
         $start = $rankings[0]->rank;
-        $this->writeSerializerStorage($eventId . '_' . $start . '_' . time() . '.json', $rankings);
+        $filename = $eventId;
+        if (!empty($groupId)) {
+            $filename .= '_' . $groupId;
+        }
+        $filename .= '_' . $start . '_' . time() . '.json';
+        $this->writeSerializerStorage($filename, $rankings);
     }
 }

@@ -141,16 +141,16 @@ class Flient implements LoggerAwareInterface {
     /**
      * @return RankingDetail[]
      */
-    public function getEventRanking(int $eventId, RankingType $rankingType, int $startRank = 1): array {
+    public function getEventRanking(int $eventId, RankingType $rankingType, int $startRank = 1, int $groupId = 0): array {
         $this->ensureLogin();
         $response = $this->request(self::API_EVENT_RANKING, EventRankingGetResponse::class, [
             'master_event_id' => $eventId,
             'ranking_type' => $rankingType->value,
-            'ranking_group_type' => RankingGroupType::All->value,
+            'ranking_group_type' => empty($groupId) ? RankingGroupType::All->value : RankingGroupType::Group->value,
             'user_id' => 0,
             'start_rank' => $startRank,
             'count' => self::SIZE_EVENT_RANKING,
-            'group_id' => 0,
+            'group_id' => $groupId,
         ]);
         return $response->data->rankingDetailList;
     }
