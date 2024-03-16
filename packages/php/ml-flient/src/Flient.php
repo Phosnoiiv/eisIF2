@@ -9,8 +9,10 @@ use EverISay\SIF\ML\Shared\Enum\RankingGroupType;
 use EverISay\SIF\ML\Shared\Enum\RankingType;
 use EverISay\SIF\ML\Shared\Response\AbstractResponse;
 use EverISay\SIF\ML\Shared\Response\AssetHashGetResponse;
+use EverISay\SIF\ML\Shared\Response\Data\Element\AllUserClearRate;
 use EverISay\SIF\ML\Shared\Response\Data\Element\RankingDetail;
 use EverISay\SIF\ML\Shared\Response\EventRankingGetResponse;
+use EverISay\SIF\ML\Shared\Response\LiveClearRateResponse;
 use EverISay\SIF\ML\Shared\Response\StartResponse;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -69,6 +71,7 @@ class Flient implements LoggerAwareInterface {
     private const API_START_ASSET_HASH = '/api/start/assetHash';
     private const API_START = '/api/start';
     private const API_EVENT_RANKING = '/api/event/ranking';
+    private const API_LIVE_CLEAR_RATE = '/api/live/clearRate';
 
     /**
      * @template T of AbstractResponse
@@ -153,5 +156,14 @@ class Flient implements LoggerAwareInterface {
             'group_id' => $groupId,
         ]);
         return $response->data->rankingDetailList;
+    }
+
+    /**
+     * @return AllUserClearRate[]
+     */
+    public function getLiveClearRate(): array {
+        $this->ensureLogin();
+        $response = $this->request(self::API_LIVE_CLEAR_RATE, LiveClearRateResponse::class);
+        return $response->data->allUserClearRate;
     }
 }

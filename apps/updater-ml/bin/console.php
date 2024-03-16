@@ -68,6 +68,7 @@ $container->inflector(LoggerAwareInterface::class)->invokeMethod('setLogger', ['
 
 $cmdLoader = new ContainerCommandLoader($container, [
     'assetHash' => Command\AssetHashGetCommand::class,
+    'clear-rate' => Command\FetchLiveClearRateCommand::class,
     'du'             => Command\DownloadUpdateCommand::class,
     'downloadUpdate' => Command\DownloadUpdateCommand::class,
     'ranking' => Command\FetchRankingCommand::class,

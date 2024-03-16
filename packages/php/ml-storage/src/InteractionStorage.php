@@ -36,4 +36,9 @@ final class InteractionStorage {
         $filename .= '_' . $start . '_' . time() . '.json';
         $this->writeSerializerStorage($filename, $rankings);
     }
+
+    public function writeClearRates(array $rates): void {
+        $filename = 'clearRate_' . time() . '.json';
+        $this->writeSerializerStorage($filename, $rates);
+    }
 }
